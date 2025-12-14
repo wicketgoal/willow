@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Live Stream | XFireFlix</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+
+  <!-- Shaka Player -->
+  <script src="https://cdn.jsdelivr.net/npm/shaka-player@4.13.3/dist/shaka-player.ui.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@4.13.3/dist/controls.min.css">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100vh;
+      background: #000;
+      overflow: hidden;
+    }
+    .shaka-video-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100% !important;
+      height: 100% !important;
+    }
+    .shaka-video {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain;
+    }
+    .watermark {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      color: white;
+      font-size: 16px;
+      opacity: 0.5;
+      font-weight: bold;
+      pointer-events: none;
+      user-select: none;
+      z-index: 1000;
+    }
+    .popup-overlay {
+      display: flex;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.6);
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      visibility: hidden;
+    }
+    .popup-container {
+      background: #2c3e50;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      color: #fff;
+      width: 250px;
+    }
+    .btn-close {
+      margin-top: 10px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      background: #3498db;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+    }
+    .btn-close:hover {
+      background: #2980b9;
+    }
+  </style>
+</head>
+<body>
+
+  <div data-shaka-player-container class="shaka-video-container" shaka-controls="true">
+    <video id="video" class="shaka-video" autoplay playsinline></video>
+  </div>
+
+  <div class="watermark">@XFireFlix</div>
+
+  <div id="popup" class="popup-overlay">
+    <div class="popup-container">
+      <div id="popupMessage">Loading stream...</div>
+      <button id="closePopupBtn" class="btn-close">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const popup = document.getElementById('popup');
+    const closeBtn = document.getElementById('closePopupBtn');
+
+    const streamUrl = "https://tvsen5.aynascope.net/willowhd/index.m3u8?e=1765691252&u=ef3dd85c-c300-4e09-b2f1-9138aec7211b&token=305095f8feb51ecdc71b3ce9f62ff35f";
+
+    // Show popup while loading
+    popup.style.visibility = 'visible';
+
+    closeBtn.addEventListener('click', () => {
+      popup.style.visibility = 'hidden';
+    });
+
+    async function initPlayer() {
+      if (shaka.Player.isBrowserSupported()) {
+        const player = new shaka.Player(video);
+        player.addEventListener('error', onErrorEvent);
+        try {
+          await player.load(streamUrl);
+          popup.style.visibility = 'hidden'; // hide loading popup
+        } catch (err) {
+          document.getElementById('popupMessage').innerText = 'Stream failed to load.';
+          console.error(err);
+        }
+      } else {
+        document.getElementById('popupMessage').innerText = 'Browser not supported';
+      }
+    }
+
+    function onErrorEvent(event) {
+      console.error('Error code', event.detail.code, 'object', event.detail);
+      document.getElementById('popupMessage').innerText = 'Error loading stream';
+    }
+
+    initPlayer();
+  </script>
+</body>
+</html>
