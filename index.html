@@ -48,6 +48,7 @@
       z-index: 1000;
     }
 
+    /* Popup Overlay */
     .popup-overlay {
       display: flex;
       position: fixed;
@@ -113,6 +114,11 @@
         padding: 10px 15px;
         font-size: 14px;
       }
+
+      /* Hide Shaka's big play button on mobile */
+      .shaka-big-play-button {
+        display: none !important;
+      }
     }
   </style>
 </head>
@@ -165,6 +171,15 @@
       video.muted = false; // Unmute after user interaction
       await loadStream();
       video.play().catch(err => console.error("Playback failed:", err));
+
+      // Enable fullscreen for mobile & desktop
+      if (video.requestFullscreen) {
+        video.requestFullscreen().catch(err => console.log("Fullscreen failed:", err));
+      } else if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen(); // iOS Safari
+      } else if (video.msRequestFullscreen) {
+        video.msRequestFullscreen();
+      }
     });
   </script>
 
