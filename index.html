@@ -59,7 +59,6 @@
       align-items: center;
       justify-content: center;
       z-index: 9999;
-      padding: 20px;
     }
 
     .popup-container {
@@ -68,7 +67,6 @@
       padding: 20px 40px;
       text-align: center;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      max-width: 90%;
     }
 
     #popupMessage {
@@ -92,26 +90,18 @@
       background-color: #2980b9;
     }
 
-    /* Responsive adjustments for mobile */
+    /* Mobile popup fix */
     @media (max-width: 768px) {
       .popup-overlay {
-        align-items: flex-end;  /* Stick popup near bottom */
-        justify-content: center;
-        padding-bottom: 50px;
+        align-items: flex-end; /* Stick popup to bottom */
       }
-
       .popup-container {
-        width: 100%;
+        position: absolute;
+        bottom: 50px; /* distance from bottom */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
         padding: 15px 20px;
-      }
-
-      #popupMessage {
-        font-size: 14px;
-      }
-
-      .btn-start {
-        padding: 10px 15px;
-        font-size: 14px;
       }
     }
   </style>
