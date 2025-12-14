@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Live Stream Player | XFireflix</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="referrer" content="no-referrer">
   
   <!-- Shaka Player -->
   <script src="https://cdn.jsdelivr.net/npm/shaka-player@4.13.3/dist/shaka-player.ui.min.js"></script>
@@ -17,7 +16,6 @@
       width: 100%;
       height: 100%;
       background: #000;
-      font-family: Roboto, sans-serif;
     }
 
     #video-container {
@@ -44,6 +42,33 @@
       user-select: none;
       z-index: 1000;
     }
+
+    /* Big central play button for mobile */
+    #mobile-play {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(229, 9, 20, 0.9);
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 1001;
+    }
+
+    #mobile-play svg {
+      width: 40px;
+      height: 40px;
+      fill: #fff;
+    }
+
+    @media(min-width: 768px) {
+      #mobile-play { display: none; } /* hide on desktop */
+    }
   </style>
 </head>
 <body>
@@ -51,16 +76,21 @@
   <div id="video-container" data-shaka-player-container>
     <video id="video" autoplay muted playsinline></video>
     <div class="watermark">@xfireflix</div>
+    <div id="mobile-play">
+      <!-- Play icon -->
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </div>
   </div>
 
   <script>
     const video = document.getElementById('video');
+    const playBtn = document.getElementById('mobile-play');
+
+    // Initialize Shaka Player
     const player = new shaka.Player(video);
 
     // Attach UI
     const ui = new shaka.ui.Overlay(player, document.getElementById('video-container'), video);
-
-    // Enable native fullscreen and controls
     const controls = ui.getControls();
     controls.configure({
       controlPanelElements: ['play_pause', 'time_and_duration', 'mute', 'volume', 'fullscreen'],
@@ -68,30 +98,37 @@
 
     player.addEventListener('error', (e) => {
       console.error("Shaka Player Error", e.detail);
-      alert("Error loading the stream. Check URL/CORS.");
     });
 
-    // HLS Stream URL
     const streamUrl = "https://tvsen5.aynascope.net/willowhd/index.m3u8?e=1765691252&u=ef3dd85c-c300-4e09-b2f1-9138aec7211b&token=305095f8feb51ecdc71b3ce9f62ff35f";
 
     async function loadStream() {
       try {
         await player.load(streamUrl);
         console.log("Stream loaded!");
-        video.muted = false; // Unmute after load
-        video.play();
       } catch (err) {
         console.error("Error loading stream:", err);
       }
     }
 
-    // Start playback on first tap (required on mobile)
-    video.addEventListener('click', () => {
-      if (video.paused) video.play();
+    // Load stream muted first
+    loadStream();
+
+    // Mobile play button interaction
+    playBtn.addEventListener('click', () => {
+      video.muted = false;
+      video.play().catch(err => console.error(err));
+      playBtn.style.display = 'none'; // hide button
     });
 
-    // Load stream on page load
-    loadStream();
+    // Also allow tap on video to start playback
+    video.addEventListener('click', () => {
+      if (video.paused) {
+        video.muted = false;
+        video.play().catch(err => console.error(err));
+        playBtn.style.display = 'none';
+      }
+    });
   </script>
 
 </body>
