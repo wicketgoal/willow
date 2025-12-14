@@ -11,25 +11,22 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@4.13.3/dist/controls.min.css">
 
   <style>
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       width: 100%;
-      height: 100vh;
+      height: 100%;
       background: #000;
-      overflow: hidden;
       font-family: Roboto, sans-serif;
     }
 
-    .shaka-video-container {
-      position: absolute;
-      top: 0;
-      left: 0;
+    #video-container {
       width: 100%;
-      height: 100%;
+      height: 100vh;
+      position: relative;
     }
 
-    .shaka-video {
+    video {
       width: 100%;
       height: 100%;
       object-fit: contain;
@@ -47,115 +44,54 @@
       user-select: none;
       z-index: 1000;
     }
-
-    .popup-overlay {
-      display: flex;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.7);
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-    }
-
-    .popup-container {
-      background-color: #2c3e50;
-      border-radius: 15px;
-      padding: 20px 40px;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
-
-    #popupMessage {
-      color: #fff;
-      font-size: 16px;
-      margin-bottom: 15px;
-    }
-
-    .btn-start {
-      background-color: #3498db;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      font-size: 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    .btn-start:hover {
-      background-color: #2980b9;
-    }
-
-    /* Mobile popup fix */
-    @media (max-width: 768px) {
-      .popup-overlay {
-        align-items: flex-end; /* Stick popup to bottom */
-      }
-      .popup-container {
-        position: absolute;
-        bottom: 50px; /* distance from bottom */
-        left: 50%;
-        transform: translateX(-50%);
-        width: 90%;
-        padding: 15px 20px;
-      }
-    }
   </style>
 </head>
 <body>
 
-  <!-- Video Player -->
-  <div data-shaka-player-container class="shaka-video-container" shaka-controls="true">
-    <video id="video" class="shaka-video" autoplay muted playsinline></video>
-  </div>
-
-  <div class="watermark">@xfireflix</div>
-
-  <!-- Popup -->
-  <div id="popup" class="popup-overlay">
-    <div class="popup-container">
-      <h3 id="popupMessage">Click to start the live stream</h3>
-      <button id="startBtn" class="btn-start">Start Stream</button>
-    </div>
+  <div id="video-container" data-shaka-player-container>
+    <video id="video" autoplay muted playsinline></video>
+    <div class="watermark">@xfireflix</div>
   </div>
 
   <script>
-    // Stream URL
-    const streamUrl = "https://tvsen5.aynascope.net/willowhd/index.m3u8?e=1765691252&u=ef3dd85c-c300-4e09-b2f1-9138aec7211b&token=305095f8feb51ecdc71b3ce9f62ff35f";
-
-    // Initialize Shaka Player
     const video = document.getElementById('video');
     const player = new shaka.Player(video);
 
-    player.addEventListener('error', (e) => {
-      console.error("Shaka Player Error", e.detail);
-      alert("Error loading the stream. Check the URL or CORS policy.");
+    // Attach UI
+    const ui = new shaka.ui.Overlay(player, document.getElementById('video-container'), video);
+
+    // Enable native fullscreen and controls
+    const controls = ui.getControls();
+    controls.configure({
+      controlPanelElements: ['play_pause', 'time_and_duration', 'mute', 'volume', 'fullscreen'],
     });
 
-    // Load HLS stream
+    player.addEventListener('error', (e) => {
+      console.error("Shaka Player Error", e.detail);
+      alert("Error loading the stream. Check URL/CORS.");
+    });
+
+    // HLS Stream URL
+    const streamUrl = "https://tvsen5.aynascope.net/willowhd/index.m3u8?e=1765691252&u=ef3dd85c-c300-4e09-b2f1-9138aec7211b&token=305095f8feb51ecdc71b3ce9f62ff35f";
+
     async function loadStream() {
       try {
         await player.load(streamUrl);
         console.log("Stream loaded!");
+        video.muted = false; // Unmute after load
+        video.play();
       } catch (err) {
         console.error("Error loading stream:", err);
       }
     }
 
-    // Start button
-    const startBtn = document.getElementById('startBtn');
-    const popup = document.getElementById('popup');
-
-    startBtn.addEventListener('click', async () => {
-      popup.style.display = "none";
-      video.muted = false; // Unmute after user interaction
-      await loadStream();
-      video.play().catch(err => console.error("Playback failed:", err));
+    // Start playback on first tap (required on mobile)
+    video.addEventListener('click', () => {
+      if (video.paused) video.play();
     });
+
+    // Load stream on page load
+    loadStream();
   </script>
 
 </body>
